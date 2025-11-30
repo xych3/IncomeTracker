@@ -15,6 +15,18 @@
 - **Customizable Work Schedule** - Set your start and end times
 - **Live Countdown Timer** - See remaining work time and pending earnings
 
+### 🐟 Slacking Time Tracker (New!)
+- **Interactive Slacking Timer** - Click to start/stop tracking your break time
+- **Efficiency Boost Calculation** - See how your effective hourly rate increases when you slack
+- **Initial Slacking Time** - Set a starting value for slacking time in settings
+- **Visual Feedback** - Blue border highlight when slacking is active
+
+### Dashboard Layout
+- **Two-Row Top Section** - First row: Current Time + Info Panel; Second row: Current Earnings + Pending Earnings
+- **Responsive Typography** - Font sizes automatically adjust based on screen size
+- **Six-Stat Grid** - Worked time, Remaining time, Slacking time, Per Second/Minute/Hour rates
+- **Unified Design** - Current and Pending earnings cards share the same beautiful gradient style
+
 ### Multi-Currency Support 🌍
 - **15+ Currencies** - USD, EUR, GBP, JPY, CNY, KRW, INR, AUD, CAD, CHF, HKD, SGD, MXN, BRL, RUB
 - **Live Exchange Rates** - Real-time currency conversion via API
@@ -30,6 +42,7 @@
 ### Design Features
 - **Modern UI/UX** - Clean, minimalist design with glassmorphism effects
 - **Responsive Design** - Works seamlessly on desktop, tablet, and mobile
+- **Dynamic Font Scaling** - Text automatically resizes based on viewport
 - **Dark Theme** - Easy on the eyes with a sophisticated color palette
 - **Smooth Animations** - Polished transitions and micro-interactions
 
