@@ -1883,6 +1883,15 @@
             return `${String(hrs).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
         }
 
+        function formatTimeWithMs(seconds) {
+            if (seconds < 0) seconds = 0;
+            const hrs = Math.floor(seconds / 3600);
+            const mins = Math.floor((seconds % 3600) / 60);
+            const secs = Math.floor(seconds % 60);
+            const ms = Math.floor((seconds % 1) * 1000);
+            return `${String(hrs).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}.${String(ms).padStart(3, '0')}`;
+        }
+
         function formatCurrency(amount, decimals = 2) {
             if (state.currency === 'JPY' || state.currency === 'KRW') {
                 return Math.round(amount).toLocaleString();
@@ -1897,7 +1906,8 @@
 
         function getCurrentTimeInSeconds() {
             const now = new Date();
-            return now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
+            // Include milliseconds for sub-second precision
+            return now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds() + now.getMilliseconds() / 1000;
         }
 
         function getWorkDurationInSeconds() {
@@ -1992,7 +2002,11 @@
         // Update Functions
         function updateSystemTime() {
             const now = new Date();
-            const timeStr = now.toLocaleTimeString('en-US', { hour12: false });
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            const timeStr = `${hours}:${minutes}:${seconds}`;
+            
             elements.systemTime.textContent = timeStr;
             elements.dashboardTime.textContent = timeStr;
             
@@ -2021,11 +2035,11 @@
 
             elements.currentEarnings.textContent = formatCurrency(state.currentEarnings);
             elements.totalEarnings.textContent = `${symbol}${formatCurrency(state.totalEarnings)}`;
-            elements.workedTime.textContent = formatTime(state.elapsedSeconds);
+            elements.workedTime.textContent = formatTimeWithMs(state.elapsedSeconds);
 
             const totalWorkSeconds = getWorkDurationInSeconds();
             const remainingSeconds = Math.max(0, totalWorkSeconds - state.elapsedSeconds);
-            elements.remainingTime.textContent = formatTime(remainingSeconds);
+            elements.remainingTime.textContent = formatTimeWithMs(remainingSeconds);
 
             // Calculate pending earnings
             const earningsPerSecond = getEarningsPerSecond();
@@ -2075,8 +2089,8 @@
                 // Update Running Dashboard
                 elements.dashboardCurrency.textContent = symbol;
                 elements.dashboardEarnings.textContent = formatCurrency(state.currentEarnings);
-                elements.dashRemaining.textContent = formatTime(remainingSeconds);
-                elements.dashWorked.textContent = formatTime(state.elapsedSeconds);
+                elements.dashRemaining.textContent = formatTimeWithMs(remainingSeconds);
+                elements.dashWorked.textContent = formatTimeWithMs(state.elapsedSeconds);
                 
                 // Calculate effective work time (minus slacking)
                 const effectiveWorkSeconds = Math.max(0, state.elapsedSeconds - state.slackingSeconds);
@@ -2088,7 +2102,7 @@
                 elements.dashPerHour.textContent = `${symbol}${formatCurrency(effectiveEarningsPerSecond * 3600)}`;
 
                 // Update slacking time display
-                elements.dashSlacking.textContent = formatTime(state.slackingSeconds);
+                elements.dashSlacking.textContent = formatTimeWithMs(state.slackingSeconds);
                 
                 // Update Pending Earnings in top section
                 elements.dashboardPendingCurrency.textContent = symbol;
@@ -2145,18 +2159,22 @@
         }
 
         function tick() {
+            const now = Date.now();
+            const deltaTime = (now - (state.lastTickTime || now)) / 1000; // Delta in seconds (fractional)
+            state.lastTickTime = now;
+            
             const totalWorkSeconds = getWorkDurationInSeconds();
             
             // Sync with system time if enabled
             if (state.syncWithSystemTime) {
                 state.elapsedSeconds = getElapsedSinceStart();
             } else {
-                state.elapsedSeconds++;
+                state.elapsedSeconds += deltaTime; // Use fractional seconds
             }
 
             // Update slacking time if currently slacking
             if (state.isSlacking) {
-                state.slackingSeconds++;
+                state.slackingSeconds += deltaTime; // Use fractional seconds
             }
 
             if (state.elapsedSeconds >= totalWorkSeconds) {
@@ -2169,7 +2187,7 @@
 
             // Handle break mode
             if (state.breakModeEnabled) {
-                state.cycleElapsed++;
+                state.cycleElapsed += deltaTime; // Use fractional seconds
                 
                 if (state.isOnBreak) {
                     const breakSeconds = state.breakDuration * 60;
@@ -2255,7 +2273,8 @@
             elements.startBtn.style.display = 'none';
             elements.stopBtn.style.display = 'flex';
             
-            state.intervalId = setInterval(tick, 1000);
+            state.lastTickTime = Date.now(); // Initialize tick time
+            state.intervalId = setInterval(tick, 50); // 50ms interval for smooth updates
             tick(); // Initial tick
         }
 
@@ -2363,11 +2382,9 @@
 
         // Initialize
         async function init() {
-            // Update system time every second (only when not running - when running, tick() handles it)
+            // Update system time every second (main time display)
             setInterval(() => {
-                if (!state.isRunning) {
-                    updateSystemTime();
-                }
+                updateSystemTime();
             }, 1000);
             updateSystemTime();
 
