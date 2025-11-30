@@ -1,0 +1,1365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Income Tracker - Real-time Earnings Tracker</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --primary-light: #818cf8;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --dark: #0f172a;
+            --dark-light: #1e293b;
+            --dark-lighter: #334155;
+            --text: #f8fafc;
+            --text-muted: #94a3b8;
+            --border: #475569;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, var(--dark) 0%, #1a1a2e 50%, var(--dark) 100%);
+            min-height: 100vh;
+            color: var(--text);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary-light) 0%, var(--primary) 50%, #a855f7 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+        }
+
+        .current-time {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 0.75rem;
+            padding: 0.5rem 1rem;
+            background: var(--dark-light);
+            border-radius: 2rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            color: var(--primary-light);
+        }
+
+        /* Main Grid Layout */
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1.5fr;
+            gap: 2rem;
+        }
+
+        .settings-column {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        /* Card Styles */
+        .card {
+            background: rgba(30, 41, 59, 0.8);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
+            border-radius: 1.5rem;
+            padding: 1.5rem;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .card-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .card-title .icon {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+        }
+
+        /* Form Styles */
+        .form-group {
+            margin-bottom: 1.25rem;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            margin-bottom: 0.4rem;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.75rem;
+        }
+
+        .form-row-3 {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 0.75rem;
+        }
+
+        input[type="time"],
+        input[type="number"],
+        select {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            background: var(--dark);
+            border: 1px solid var(--border);
+            border-radius: 0.75rem;
+            color: var(--text);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.95rem;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        select {
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%2394a3b8' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10l-5 5z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 1rem center;
+            padding-right: 2.5rem;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+        }
+
+        /* Radio Toggle */
+        .radio-toggle {
+            display: flex;
+            background: var(--dark);
+            border-radius: 0.75rem;
+            padding: 0.25rem;
+            margin-bottom: 1rem;
+        }
+
+        .radio-toggle label {
+            flex: 1;
+            text-align: center;
+            padding: 0.6rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            transition: all 0.3s ease;
+        }
+
+        .radio-toggle input {
+            display: none;
+        }
+
+        .radio-toggle input:checked + label {
+            background: var(--primary);
+            color: white;
+        }
+
+        /* Toggle Switch */
+        .toggle-group {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.75rem 1rem;
+            background: var(--dark);
+            border-radius: 0.75rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .toggle-label {
+            font-size: 0.85rem;
+            color: var(--text);
+        }
+
+        .toggle {
+            position: relative;
+            width: 48px;
+            height: 26px;
+        }
+
+        .toggle input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--dark-lighter);
+            border-radius: 26px;
+            transition: 0.3s;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 3px;
+            bottom: 3px;
+            background: white;
+            border-radius: 50%;
+            transition: 0.3s;
+        }
+
+        .toggle input:checked + .toggle-slider {
+            background: var(--primary);
+        }
+
+        .toggle input:checked + .toggle-slider:before {
+            transform: translateX(22px);
+        }
+
+        .break-settings {
+            display: none;
+            padding: 1rem;
+            background: var(--dark);
+            border-radius: 0.75rem;
+            margin-top: 0.75rem;
+        }
+
+        .break-settings.active {
+            display: block;
+        }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0.875rem 1.5rem;
+            font-size: 0.95rem;
+            font-weight: 600;
+            border: none;
+            border-radius: 0.75rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            width: 100%;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(99, 102, 241, 0.4);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, var(--danger) 0%, #dc2626 100%);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: var(--dark-lighter);
+            color: var(--text);
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 0.75rem;
+            margin-top: 1rem;
+        }
+
+        .btn-group .btn {
+            flex: 1;
+        }
+
+        /* Display Panel */
+        .display-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .earnings-display {
+            text-align: center;
+            padding: 2.5rem 2rem;
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(168, 85, 247, 0.1) 100%);
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            border-radius: 1.5rem;
+        }
+
+        .earnings-label {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 0.75rem;
+        }
+
+        .earnings-amount {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 3.5rem;
+            font-weight: 600;
+            color: var(--success);
+            text-shadow: 0 0 40px rgba(16, 185, 129, 0.3);
+            display: flex;
+            align-items: baseline;
+            justify-content: center;
+            gap: 0.25rem;
+        }
+
+        .earnings-amount .currency {
+            font-size: 1.75rem;
+            color: var(--text-muted);
+        }
+
+        .usd-conversion {
+            margin-top: 0.75rem;
+            font-size: 1.1rem;
+            color: var(--text-muted);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .usd-conversion .usd-amount {
+            color: var(--primary-light);
+        }
+
+        .exchange-rate-info {
+            margin-top: 0.5rem;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            opacity: 0.7;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+        }
+
+        .stat-card {
+            padding: 1.25rem;
+            background: var(--dark);
+            border-radius: 1rem;
+            text-align: center;
+            border: 1px solid var(--border);
+        }
+
+        .stat-value {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-value.time {
+            color: var(--primary-light);
+        }
+
+        .stat-value.pending {
+            color: var(--warning);
+        }
+
+        .stat-value.total {
+            color: var(--success);
+        }
+
+        .stat-value.worked {
+            color: #f472b6;
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .stat-sub {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            margin-top: 0.25rem;
+            opacity: 0.7;
+        }
+
+        /* Status Badge */
+        .status-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 1rem;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1.25rem;
+            border-radius: 2rem;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .status-badge.idle {
+            background: rgba(148, 163, 184, 0.2);
+            color: var(--text-muted);
+        }
+
+        .status-badge.working {
+            background: rgba(16, 185, 129, 0.2);
+            color: var(--success);
+        }
+
+        .status-badge.break {
+            background: rgba(245, 158, 11, 0.2);
+            color: var(--warning);
+        }
+
+        .status-badge.synced {
+            background: rgba(99, 102, 241, 0.2);
+            color: var(--primary-light);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: currentColor;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Progress Bar */
+        .progress-container {
+            margin-top: 1rem;
+        }
+
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+        }
+
+        .progress-bar {
+            height: 8px;
+            background: var(--dark-lighter);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary) 0%, var(--primary-light) 100%);
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+
+        /* Rate Info */
+        .rate-info {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+            padding: 0.5rem;
+            background: rgba(16, 185, 129, 0.1);
+            border-radius: 0.5rem;
+            font-size: 0.8rem;
+            color: var(--success);
+        }
+
+        /* Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: var(--dark-light);
+            border: 1px solid var(--border);
+            border-radius: 1.5rem;
+            padding: 2.5rem;
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+            animation: modalSlideIn 0.3s ease;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .modal-icon {
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(135deg, var(--success) 0%, #059669 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            margin: 0 auto 1.25rem;
+        }
+
+        .modal h2 {
+            font-size: 1.5rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .modal-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+
+        .modal-stat {
+            padding: 1.25rem;
+            background: var(--dark);
+            border-radius: 1rem;
+        }
+
+        .modal-stat-value {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--success);
+        }
+
+        .modal-stat-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 0.25rem;
+        }
+
+        .modal .btn {
+            margin-top: 0.75rem;
+        }
+
+        /* Loading Spinner */
+        .loading {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border: 2px solid var(--text-muted);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1024px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .container {
+                padding: 1rem;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .earnings-amount {
+                font-size: 3rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .header h1 {
+                font-size: 1.5rem;
+            }
+
+            .card {
+                padding: 1.25rem;
+            }
+
+            .earnings-display {
+                padding: 1.5rem 1rem;
+            }
+
+            .earnings-amount {
+                font-size: 2.25rem;
+            }
+
+            .earnings-amount .currency {
+                font-size: 1.25rem;
+            }
+
+            .form-row, .form-row-3 {
+                grid-template-columns: 1fr;
+            }
+
+            .btn-group {
+                flex-direction: column;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .stat-value {
+                font-size: 1.1rem;
+            }
+
+            .modal-stats {
+                grid-template-columns: 1fr;
+            }
+
+            .radio-toggle {
+                flex-direction: column;
+                gap: 0.25rem;
+            }
+        }
+
+        /* Animations */
+        .fade-in {
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--dark);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--dark-lighter);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--border);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header fade-in">
+            <h1>💰 Income Tracker</h1>
+            <p>Track your earnings in real-time</p>
+            <div class="current-time">
+                🕐 <span id="systemTime">--:--:--</span>
+            </div>
+        </header>
+
+        <main class="main-grid">
+            <!-- Settings Panel -->
+            <div class="settings-column">
+                <div class="card fade-in">
+                    <h2 class="card-title">
+                        <span class="icon">⚙️</span>
+                        Work Settings
+                    </h2>
+
+                    <div class="form-group">
+                        <label>Work Schedule</label>
+                        <div class="form-row">
+                            <div>
+                                <label style="font-size: 0.7rem;">Start Time</label>
+                                <input type="time" id="startTime" value="09:00">
+                            </div>
+                            <div>
+                                <label style="font-size: 0.7rem;">End Time</label>
+                                <input type="time" id="endTime" value="18:00">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="toggle-group">
+                        <span class="toggle-label">Sync with System Time</span>
+                        <label class="toggle">
+                            <input type="checkbox" id="syncTimeToggle" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="toggle-group">
+                        <span class="toggle-label">Enable Break Mode</span>
+                        <label class="toggle">
+                            <input type="checkbox" id="breakToggle">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="break-settings" id="breakSettings">
+                        <div class="form-row">
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label>Work Duration (min)</label>
+                                <input type="number" id="workDuration" value="50" min="1">
+                            </div>
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label>Break Duration (min)</label>
+                                <input type="number" id="breakDuration" value="10" min="1">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card fade-in">
+                    <h2 class="card-title">
+                        <span class="icon">💵</span>
+                        Income Settings
+                    </h2>
+
+                    <div class="form-group">
+                        <label>Calculation Mode</label>
+                        <div class="radio-toggle">
+                            <input type="radio" name="calcMode" id="hourlyMode" value="hourly" checked>
+                            <label for="hourlyMode">Hourly Rate</label>
+                            <input type="radio" name="calcMode" id="totalMode" value="total">
+                            <label for="totalMode">Total Income</label>
+                        </div>
+                    </div>
+
+                    <div id="hourlyRateGroup" class="form-group">
+                        <label>Hourly Rate</label>
+                        <input type="number" id="hourlyRate" value="50" min="0" step="0.01" placeholder="Enter hourly rate">
+                    </div>
+
+                    <div id="totalIncomeGroup" class="form-group" style="display: none;">
+                        <label>Total Income for Work Period</label>
+                        <input type="number" id="totalIncome" value="400" min="0" step="0.01" placeholder="Enter total income">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Currency</label>
+                        <select id="currencySelect">
+                            <option value="USD" data-symbol="$">🇺🇸 USD - US Dollar</option>
+                            <option value="EUR" data-symbol="€">🇪🇺 EUR - Euro</option>
+                            <option value="GBP" data-symbol="£">🇬🇧 GBP - British Pound</option>
+                            <option value="JPY" data-symbol="¥">🇯🇵 JPY - Japanese Yen</option>
+                            <option value="CNY" data-symbol="¥">🇨🇳 CNY - Chinese Yuan</option>
+                            <option value="KRW" data-symbol="₩">🇰🇷 KRW - Korean Won</option>
+                            <option value="INR" data-symbol="₹">🇮🇳 INR - Indian Rupee</option>
+                            <option value="AUD" data-symbol="$">🇦🇺 AUD - Australian Dollar</option>
+                            <option value="CAD" data-symbol="$">🇨🇦 CAD - Canadian Dollar</option>
+                            <option value="CHF" data-symbol="Fr">🇨🇭 CHF - Swiss Franc</option>
+                            <option value="HKD" data-symbol="$">🇭🇰 HKD - Hong Kong Dollar</option>
+                            <option value="SGD" data-symbol="$">🇸🇬 SGD - Singapore Dollar</option>
+                            <option value="MXN" data-symbol="$">🇲🇽 MXN - Mexican Peso</option>
+                            <option value="BRL" data-symbol="R$">🇧🇷 BRL - Brazilian Real</option>
+                            <option value="RUB" data-symbol="₽">🇷🇺 RUB - Russian Ruble</option>
+                        </select>
+                    </div>
+
+                    <div class="rate-info" id="rateInfo">
+                        <span class="loading"></span>
+                        <span id="rateText">Loading exchange rate...</span>
+                    </div>
+                </div>
+
+                <div class="btn-group">
+                    <button class="btn btn-primary" id="startBtn">
+                        ▶ Start Tracking
+                    </button>
+                    <button class="btn btn-danger" id="stopBtn" style="display: none;">
+                        ⏹ Stop
+                    </button>
+                </div>
+            </div>
+
+            <!-- Display Panel -->
+            <div class="display-panel fade-in">
+                <div class="card">
+                    <div class="status-container">
+                        <div class="status-badge idle" id="statusBadge">
+                            <span class="status-dot"></span>
+                            <span id="statusText">Ready to Start</span>
+                        </div>
+                    </div>
+
+                    <div class="earnings-display">
+                        <div class="earnings-label">Current Earnings</div>
+                        <div class="earnings-amount">
+                            <span class="currency" id="displayCurrency">$</span>
+                            <span id="currentEarnings">0.00</span>
+                        </div>
+                        <div class="usd-conversion" id="usdConversion" style="display: none;">
+                            ≈ <span class="usd-amount" id="usdAmount">$0.00</span> USD
+                        </div>
+                        <div class="exchange-rate-info" id="exchangeRateInfo"></div>
+                    </div>
+
+                    <div class="progress-container" id="progressContainer">
+                        <div class="progress-label">
+                            <span id="progressLabel">Work Progress</span>
+                            <span id="progressPercent">0%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-value time" id="remainingTime">--:--:--</div>
+                            <div class="stat-label">Remaining Time</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value pending" id="pendingEarnings">0.00</div>
+                            <div class="stat-label">Pending Earnings</div>
+                            <div class="stat-sub" id="pendingUsd"></div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value total" id="totalEarnings">0.00</div>
+                            <div class="stat-label">Total Earnings</div>
+                            <div class="stat-sub" id="totalUsd"></div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value worked" id="workedTime">00:00:00</div>
+                            <div class="stat-label">Time Worked</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Summary Modal -->
+    <div class="modal-overlay" id="summaryModal">
+        <div class="modal">
+            <div class="modal-icon">🎉</div>
+            <h2>Work Session Complete!</h2>
+            <p>Great job! Here's your session summary:</p>
+            
+            <div class="modal-stats">
+                <div class="modal-stat">
+                    <div class="modal-stat-value" id="modalEarnings">0.00</div>
+                    <div class="modal-stat-label">Total Earned</div>
+                </div>
+                <div class="modal-stat">
+                    <div class="modal-stat-value" id="modalTime">00:00:00</div>
+                    <div class="modal-stat-label">Time Worked</div>
+                </div>
+            </div>
+            <div id="modalUsdConversion" style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem;"></div>
+
+            <button class="btn btn-primary" id="closeModal">
+                Start New Session
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Currency Data
+        const currencies = {
+            USD: { symbol: '$', name: 'US Dollar' },
+            EUR: { symbol: '€', name: 'Euro' },
+            GBP: { symbol: '£', name: 'British Pound' },
+            JPY: { symbol: '¥', name: 'Japanese Yen' },
+            CNY: { symbol: '¥', name: 'Chinese Yuan' },
+            KRW: { symbol: '₩', name: 'Korean Won' },
+            INR: { symbol: '₹', name: 'Indian Rupee' },
+            AUD: { symbol: '$', name: 'Australian Dollar' },
+            CAD: { symbol: '$', name: 'Canadian Dollar' },
+            CHF: { symbol: 'Fr', name: 'Swiss Franc' },
+            HKD: { symbol: '$', name: 'Hong Kong Dollar' },
+            SGD: { symbol: '$', name: 'Singapore Dollar' },
+            MXN: { symbol: '$', name: 'Mexican Peso' },
+            BRL: { symbol: 'R$', name: 'Brazilian Real' },
+            RUB: { symbol: '₽', name: 'Russian Ruble' }
+        };
+
+        // Application State
+        const state = {
+            isRunning: false,
+            calcMode: 'hourly', // 'hourly' or 'total'
+            hourlyRate: 50,
+            totalIncome: 400,
+            currentEarnings: 0,
+            totalEarnings: 0,
+            elapsedSeconds: 0,
+            breakModeEnabled: false,
+            workDuration: 50,
+            breakDuration: 10,
+            isOnBreak: false,
+            cycleElapsed: 0,
+            intervalId: null,
+            syncWithSystemTime: true,
+            currency: 'USD',
+            exchangeRates: {},
+            rateToUsd: 1,
+            lastRateUpdate: null
+        };
+
+        // DOM Elements
+        const elements = {
+            systemTime: document.getElementById('systemTime'),
+            startTimeInput: document.getElementById('startTime'),
+            endTimeInput: document.getElementById('endTime'),
+            syncTimeToggle: document.getElementById('syncTimeToggle'),
+            hourlyRateInput: document.getElementById('hourlyRate'),
+            totalIncomeInput: document.getElementById('totalIncome'),
+            hourlyRateGroup: document.getElementById('hourlyRateGroup'),
+            totalIncomeGroup: document.getElementById('totalIncomeGroup'),
+            hourlyMode: document.getElementById('hourlyMode'),
+            totalMode: document.getElementById('totalMode'),
+            currencySelect: document.getElementById('currencySelect'),
+            rateInfo: document.getElementById('rateInfo'),
+            rateText: document.getElementById('rateText'),
+            breakToggle: document.getElementById('breakToggle'),
+            breakSettings: document.getElementById('breakSettings'),
+            workDurationInput: document.getElementById('workDuration'),
+            breakDurationInput: document.getElementById('breakDuration'),
+            startBtn: document.getElementById('startBtn'),
+            stopBtn: document.getElementById('stopBtn'),
+            statusBadge: document.getElementById('statusBadge'),
+            statusText: document.getElementById('statusText'),
+            displayCurrency: document.getElementById('displayCurrency'),
+            currentEarnings: document.getElementById('currentEarnings'),
+            usdConversion: document.getElementById('usdConversion'),
+            usdAmount: document.getElementById('usdAmount'),
+            exchangeRateInfo: document.getElementById('exchangeRateInfo'),
+            remainingTime: document.getElementById('remainingTime'),
+            pendingEarnings: document.getElementById('pendingEarnings'),
+            pendingUsd: document.getElementById('pendingUsd'),
+            totalEarnings: document.getElementById('totalEarnings'),
+            totalUsd: document.getElementById('totalUsd'),
+            workedTime: document.getElementById('workedTime'),
+            progressContainer: document.getElementById('progressContainer'),
+            progressLabel: document.getElementById('progressLabel'),
+            progressPercent: document.getElementById('progressPercent'),
+            progressFill: document.getElementById('progressFill'),
+            summaryModal: document.getElementById('summaryModal'),
+            modalEarnings: document.getElementById('modalEarnings'),
+            modalTime: document.getElementById('modalTime'),
+            modalUsdConversion: document.getElementById('modalUsdConversion'),
+            closeModal: document.getElementById('closeModal')
+        };
+
+        // Utility Functions
+        function formatTime(seconds) {
+            if (seconds < 0) seconds = 0;
+            const hrs = Math.floor(seconds / 3600);
+            const mins = Math.floor((seconds % 3600) / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${String(hrs).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+        }
+
+        function formatCurrency(amount, decimals = 2) {
+            if (state.currency === 'JPY' || state.currency === 'KRW') {
+                return Math.round(amount).toLocaleString();
+            }
+            return amount.toFixed(decimals);
+        }
+
+        function parseTimeToSeconds(timeStr) {
+            const [hours, minutes] = timeStr.split(':').map(Number);
+            return hours * 3600 + minutes * 60;
+        }
+
+        function getCurrentTimeInSeconds() {
+            const now = new Date();
+            return now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
+        }
+
+        function getWorkDurationInSeconds() {
+            const startSeconds = parseTimeToSeconds(elements.startTimeInput.value);
+            const endSeconds = parseTimeToSeconds(elements.endTimeInput.value);
+            return endSeconds - startSeconds;
+        }
+
+        function getElapsedSinceStart() {
+            const startSeconds = parseTimeToSeconds(elements.startTimeInput.value);
+            const currentSeconds = getCurrentTimeInSeconds();
+            return Math.max(0, currentSeconds - startSeconds);
+        }
+
+        function getCurrencySymbol() {
+            return currencies[state.currency]?.symbol || '$';
+        }
+
+        // Exchange Rate Functions
+        async function fetchExchangeRates() {
+            try {
+                // Using exchangerate-api.com free tier (no API key needed for limited requests)
+                const response = await fetch('https://api.exchangerate-api.com/v4/latest/USD');
+                if (!response.ok) throw new Error('Failed to fetch rates');
+                
+                const data = await response.json();
+                state.exchangeRates = data.rates;
+                state.lastRateUpdate = new Date();
+                updateRateDisplay();
+            } catch (error) {
+                console.error('Error fetching exchange rates:', error);
+                // Fallback rates
+                state.exchangeRates = {
+                    USD: 1, EUR: 0.92, GBP: 0.79, JPY: 149.5, CNY: 7.24,
+                    KRW: 1320, INR: 83.1, AUD: 1.53, CAD: 1.36, CHF: 0.88,
+                    HKD: 7.82, SGD: 1.34, MXN: 17.2, BRL: 4.97, RUB: 92
+                };
+                elements.rateText.textContent = 'Using offline rates';
+            }
+        }
+
+        function updateRateDisplay() {
+            const currency = state.currency;
+            if (currency === 'USD') {
+                state.rateToUsd = 1;
+                elements.rateInfo.style.display = 'none';
+                elements.usdConversion.style.display = 'none';
+                return;
+            }
+
+            const rate = state.exchangeRates[currency];
+            if (rate) {
+                state.rateToUsd = 1 / rate;
+                elements.rateText.innerHTML = `1 ${currency} = $${(1/rate).toFixed(4)} USD`;
+                elements.rateInfo.querySelector('.loading')?.remove();
+                elements.rateInfo.style.display = 'flex';
+                elements.usdConversion.style.display = 'block';
+                
+                if (state.lastRateUpdate) {
+                    elements.exchangeRateInfo.textContent = `Rate updated: ${state.lastRateUpdate.toLocaleTimeString()}`;
+                }
+            }
+        }
+
+        function convertToUsd(amount) {
+            return amount * state.rateToUsd;
+        }
+
+        // Update Functions
+        function updateSystemTime() {
+            const now = new Date();
+            elements.systemTime.textContent = now.toLocaleTimeString('en-US', { hour12: false });
+        }
+
+        function updateStatus(status, text) {
+            elements.statusBadge.className = `status-badge ${status}`;
+            elements.statusText.textContent = text;
+        }
+
+        function getEarningsPerSecond() {
+            const totalWorkSeconds = getWorkDurationInSeconds();
+            if (state.calcMode === 'hourly') {
+                return (parseFloat(elements.hourlyRateInput.value) || 0) / 3600;
+            } else {
+                return (parseFloat(elements.totalIncomeInput.value) || 0) / totalWorkSeconds;
+            }
+        }
+
+        function updateDisplay() {
+            const symbol = getCurrencySymbol();
+            elements.displayCurrency.textContent = symbol;
+
+            elements.currentEarnings.textContent = formatCurrency(state.currentEarnings);
+            elements.totalEarnings.textContent = `${symbol}${formatCurrency(state.totalEarnings)}`;
+            elements.workedTime.textContent = formatTime(state.elapsedSeconds);
+
+            const totalWorkSeconds = getWorkDurationInSeconds();
+            const remainingSeconds = Math.max(0, totalWorkSeconds - state.elapsedSeconds);
+            elements.remainingTime.textContent = formatTime(remainingSeconds);
+
+            // Calculate pending earnings
+            const earningsPerSecond = getEarningsPerSecond();
+            const pendingAmount = remainingSeconds * earningsPerSecond;
+            elements.pendingEarnings.textContent = `${symbol}${formatCurrency(pendingAmount)}`;
+
+            // USD Conversions
+            if (state.currency !== 'USD') {
+                const currentUsd = convertToUsd(state.currentEarnings);
+                const totalUsd = convertToUsd(state.totalEarnings);
+                const pendingUsd = convertToUsd(pendingAmount);
+                
+                elements.usdAmount.textContent = `$${currentUsd.toFixed(2)}`;
+                elements.totalUsd.textContent = `≈ $${totalUsd.toFixed(2)} USD`;
+                elements.pendingUsd.textContent = `≈ $${pendingUsd.toFixed(2)} USD`;
+            } else {
+                elements.totalUsd.textContent = '';
+                elements.pendingUsd.textContent = '';
+            }
+
+            // Update progress bar
+            if (state.breakModeEnabled && state.isRunning) {
+                const cycleDuration = state.isOnBreak ? 
+                    state.breakDuration * 60 : 
+                    state.workDuration * 60;
+                const cycleProgress = (state.cycleElapsed / cycleDuration) * 100;
+                elements.progressFill.style.width = `${Math.min(cycleProgress, 100)}%`;
+                elements.progressPercent.textContent = `${Math.round(cycleProgress)}%`;
+                elements.progressLabel.textContent = state.isOnBreak ? 'Break Progress' : 'Work Cycle Progress';
+            } else {
+                const overallProgress = totalWorkSeconds > 0 ? (state.elapsedSeconds / totalWorkSeconds) * 100 : 0;
+                elements.progressFill.style.width = `${Math.min(overallProgress, 100)}%`;
+                elements.progressPercent.textContent = `${Math.round(overallProgress)}%`;
+                elements.progressLabel.textContent = 'Work Progress';
+            }
+        }
+
+        function tick() {
+            const totalWorkSeconds = getWorkDurationInSeconds();
+            
+            // Sync with system time if enabled
+            if (state.syncWithSystemTime) {
+                state.elapsedSeconds = getElapsedSinceStart();
+            } else {
+                state.elapsedSeconds++;
+            }
+
+            if (state.elapsedSeconds >= totalWorkSeconds) {
+                stopTimer();
+                showSummary();
+                return;
+            }
+
+            const earningsPerSecond = getEarningsPerSecond();
+
+            // Handle break mode
+            if (state.breakModeEnabled) {
+                state.cycleElapsed++;
+                
+                if (state.isOnBreak) {
+                    const breakSeconds = state.breakDuration * 60;
+                    if (state.cycleElapsed >= breakSeconds) {
+                        state.isOnBreak = false;
+                        state.cycleElapsed = 0;
+                        updateStatus('working', 'Working');
+                    }
+                } else {
+                    const workSeconds = state.workDuration * 60;
+                    if (state.cycleElapsed >= workSeconds) {
+                        state.isOnBreak = true;
+                        state.cycleElapsed = 0;
+                        updateStatus('break', 'On Break');
+                    }
+                    
+                    // Only earn during work time
+                    state.currentEarnings = state.elapsedSeconds * earningsPerSecond;
+                    state.totalEarnings = state.currentEarnings;
+                }
+            } else {
+                state.currentEarnings = state.elapsedSeconds * earningsPerSecond;
+                state.totalEarnings = state.currentEarnings;
+            }
+
+            updateDisplay();
+        }
+
+        function startTimer() {
+            if (state.isRunning) return;
+
+            state.isRunning = true;
+            state.calcMode = elements.hourlyMode.checked ? 'hourly' : 'total';
+            state.breakModeEnabled = elements.breakToggle.checked;
+            state.workDuration = parseInt(elements.workDurationInput.value) || 50;
+            state.breakDuration = parseInt(elements.breakDurationInput.value) || 10;
+            state.syncWithSystemTime = elements.syncTimeToggle.checked;
+
+            // If syncing with system time, calculate elapsed time from start
+            if (state.syncWithSystemTime) {
+                state.elapsedSeconds = getElapsedSinceStart();
+                const earningsPerSecond = getEarningsPerSecond();
+                state.currentEarnings = state.elapsedSeconds * earningsPerSecond;
+                state.totalEarnings = state.currentEarnings;
+                updateStatus('synced', 'Synced with System Time');
+            } else {
+                updateStatus('working', 'Working');
+            }
+
+            elements.startBtn.style.display = 'none';
+            elements.stopBtn.style.display = 'flex';
+            
+            state.intervalId = setInterval(tick, 1000);
+            tick(); // Initial tick
+        }
+
+        function stopTimer() {
+            state.isRunning = false;
+            clearInterval(state.intervalId);
+            
+            elements.startBtn.style.display = 'flex';
+            elements.stopBtn.style.display = 'none';
+            
+            updateStatus('idle', 'Session Ended');
+        }
+
+        function resetTimer() {
+            state.currentEarnings = 0;
+            state.totalEarnings = 0;
+            state.elapsedSeconds = 0;
+            state.cycleElapsed = 0;
+            state.isOnBreak = false;
+            
+            updateDisplay();
+            elements.progressFill.style.width = '0%';
+            elements.progressPercent.textContent = '0%';
+            updateStatus('idle', 'Ready to Start');
+        }
+
+        function showSummary() {
+            const symbol = getCurrencySymbol();
+            elements.modalEarnings.textContent = `${symbol}${formatCurrency(state.totalEarnings)}`;
+            elements.modalTime.textContent = formatTime(state.elapsedSeconds);
+            
+            if (state.currency !== 'USD') {
+                const usdAmount = convertToUsd(state.totalEarnings);
+                elements.modalUsdConversion.textContent = `≈ $${usdAmount.toFixed(2)} USD`;
+                elements.modalUsdConversion.style.display = 'block';
+            } else {
+                elements.modalUsdConversion.style.display = 'none';
+            }
+            
+            elements.summaryModal.classList.add('active');
+        }
+
+        // Event Listeners
+        elements.breakToggle.addEventListener('change', function() {
+            elements.breakSettings.classList.toggle('active', this.checked);
+        });
+
+        elements.hourlyMode.addEventListener('change', function() {
+            if (this.checked) {
+                elements.hourlyRateGroup.style.display = 'block';
+                elements.totalIncomeGroup.style.display = 'none';
+            }
+        });
+
+        elements.totalMode.addEventListener('change', function() {
+            if (this.checked) {
+                elements.hourlyRateGroup.style.display = 'none';
+                elements.totalIncomeGroup.style.display = 'block';
+            }
+        });
+
+        elements.currencySelect.addEventListener('change', function() {
+            state.currency = this.value;
+            updateRateDisplay();
+            updateDisplay();
+        });
+
+        elements.startBtn.addEventListener('click', startTimer);
+        elements.stopBtn.addEventListener('click', stopTimer);
+
+        elements.closeModal.addEventListener('click', function() {
+            elements.summaryModal.classList.remove('active');
+            resetTimer();
+        });
+
+        // Real-time updates
+        elements.hourlyRateInput.addEventListener('input', () => state.isRunning && updateDisplay());
+        elements.totalIncomeInput.addEventListener('input', () => state.isRunning && updateDisplay());
+        elements.startTimeInput.addEventListener('change', updateDisplay);
+        elements.endTimeInput.addEventListener('change', updateDisplay);
+
+        // Initialize
+        async function init() {
+            // Update system time every second
+            setInterval(updateSystemTime, 1000);
+            updateSystemTime();
+
+            // Fetch exchange rates
+            await fetchExchangeRates();
+            
+            // Refresh rates every 30 minutes
+            setInterval(fetchExchangeRates, 30 * 60 * 1000);
+
+            // Initial display update
+            updateDisplay();
+        }
+
+        init();
+    </script>
+</body>
+</html>
